@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="DataAccess/HumanResources.DataAccess.csproj" />
+  <Project Path="HumanResources.Services/HumanResources.Services.csproj" />
+  <Project Path="Models/HumanResources.Models.csproj" />
+  <Project Path="SocketClient/HumanResources.SocketClient.csproj" />
+  <Project Path="SocketServer/HumanResources.SocketServer.csproj" />
+</Solution>
