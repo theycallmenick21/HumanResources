@@ -5,7 +5,13 @@ namespace HumanResources.Infrastructure.Data
 {
     public class HumanResourcesContext : DbContext
     {
-        public DbSet<Country> Paises { get; set; }
+        public DbSet<City> Cities { get; set; }
+        public DbSet<Country> Countries { get; set; }
+        public DbSet<Department> Departments { get; set; }
+        public DbSet<Employee> Employees { get; set; }
+        public DbSet<Location> Locations { get; set; }
+        public DbSet<Record> Records { get; set; }
+        public DbSet<Role> Roles { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
