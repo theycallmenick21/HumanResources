@@ -1,4 +1,4 @@
-﻿using HumanResources.Models.Enums;
+﻿using HumanResources.Domain.Enums;
 using HumanResources.SocketClient.Helpers;
 using System.Net.Sockets;
 using System.Text.Json;
@@ -261,8 +261,8 @@ namespace HumanResources.SocketClient
             // Dependiendo de la entidad, busca el nombre exacto de la columna de ID
             return entidad switch
             {
-                EntitiesEnum.Paises => item.GetProperty("IdPais").GetInt32(),
-                EntitiesEnum.Departamentos => item.GetProperty("IdDepartamento").GetInt32(),
+                EntitiesEnum.Country => item.GetProperty("IdPais").GetInt32(),
+                EntitiesEnum.Department => item.GetProperty("IdDepartamento").GetInt32(),
                 _ => item.GetProperty("Id").GetInt32() // Valor por defecto
             };
         }
@@ -272,8 +272,8 @@ namespace HumanResources.SocketClient
             // Dependiendo de la entidad, arma un string bonito para mostrar en el menú
             return entidad switch
             {
-                EntitiesEnum.Paises => $"ID: {item.GetProperty("IdPais")} | País: {item.GetProperty("NombrePais")}",
-                EntitiesEnum.Departamentos => $"ID: {item.GetProperty("IdDepartamento")} | Depto: {item.GetProperty("NombreDepartamento")}",
+                EntitiesEnum.Country => $"ID: {item.GetProperty("IdPais")} | País: {item.GetProperty("NombrePais")}",
+                EntitiesEnum.Department => $"ID: {item.GetProperty("IdDepartamento")} | Depto: {item.GetProperty("NombreDepartamento")}",
                 _ => item.ToString()
             };
         }
@@ -293,8 +293,8 @@ namespace HumanResources.SocketClient
 
             return entidad switch
             {
-                EntitiesEnum.Paises => CapturarFormularioPais(accion, idPredefinido),
-                EntitiesEnum.Departamentos => CapturarFormularioDepartamento(accion, idPredefinido),
+                EntitiesEnum.Country => CapturarFormularioPais(accion, idPredefinido),
+                EntitiesEnum.Department => CapturarFormularioDepartamento(accion, idPredefinido),
                 _ => throw new NotImplementedException($"El formulario para {entidad} no está listo.")
             };
         }

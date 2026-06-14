@@ -1,7 +1,7 @@
 <Solution>
-  <Project Path="DataAccess/HumanResources.DataAccess.csproj" />
-  <Project Path="HumanResources.Services/HumanResources.Services.csproj" />
-  <Project Path="Models/HumanResources.Models.csproj" />
-  <Project Path="SocketClient/HumanResources.SocketClient.csproj" />
-  <Project Path="SocketServer/HumanResources.SocketServer.csproj" />
+  <Project Path="HumanResources.Application/HumanResources.Application.csproj" Id="ebf3fce7-8486-4cab-81a1-25be26f882fb" />
+  <Project Path="HumanResources.Domain/HumanResources.Domain.csproj" Id="11bf576a-393b-4253-a09e-c4d77fb820ba" />
+  <Project Path="HumanResources.Infrastructure/HumanResources.Infrastructure.csproj" Id="b9702000-1771-4842-b542-a1085cae6232" />
+  <Project Path="HumanResources.SocketClient/HumanResources.SocketClient.csproj" Id="33c65be7-7e01-40ed-8a7e-b6d2d94c6d0f" />
+  <Project Path="HumanResources.SocketServer/HumanResources.SocketServer.csproj" Id="c45d8e98-b1a0-432f-9f8b-cf88bf9c0ff3" />
 </Solution>

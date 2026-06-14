@@ -7,9 +7,4 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\HumanResources.Services\HumanResources.Services.csproj" />
-    <ProjectReference Include="..\Models\HumanResources.Models.csproj" />
-  </ItemGroup>
-
 </Project>

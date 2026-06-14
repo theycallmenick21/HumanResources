@@ -1,9 +1,9 @@
-﻿using HumanResources.Models.Models;
+﻿using HumanResources.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace HumanResources.DataAccess
+namespace HumanResources.Infrastructure.Data
 {
-    public class RecursosHumanosContext : DbContext
+    public class HumanResourcesContext : DbContext
     {
         public DbSet<Country> Paises { get; set; }
 

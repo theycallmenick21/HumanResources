@@ -1,4 +1,4 @@
-﻿namespace HumanResources.Models.Enums
+﻿namespace HumanResources.Domain.Enums
 {
     public enum ActionsEnum
     {

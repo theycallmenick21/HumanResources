@@ -1,8 +1,5 @@
-﻿using HumanResources.Models.Models;
-using HumanResources.Services.Services;
-using System.Net;
+﻿using System.Net;
 using System.Net.Sockets;
-using System.Text.Json;
 
 namespace HumanResources.SocketServer
 {
@@ -47,7 +44,7 @@ namespace HumanResources.SocketServer
                 {
                     string mensaje = reader.ReadLine()!;
 
-                    if(nombreUsuario != string.Empty)
+                    if (nombreUsuario != string.Empty)
                         ProccessRequest(mensaje);
                 }
             }
@@ -76,18 +73,18 @@ namespace HumanResources.SocketServer
             int action = int.Parse(parts[2]);
             string data = parts[3];
 
-            PaisService paisService = new();
+            //CountryService paisService = new();
 
-            paisService.GetAllAsync().ContinueWith(task =>
-            {
-                List<Country> paises = task.Result;
+            //paisService.GetAllAsync().ContinueWith(task =>
+            //{
+            //    List<Country> paises = task.Result;
 
-                string jsonResponse = JsonSerializer.Serialize(paises);
+            //    string jsonResponse = JsonSerializer.Serialize(paises);
 
-                StreamWriter writer = new(conectedClients.First(c => c.Key == client).Value.GetStream()) { AutoFlush = true };
-                writer.WriteLine(jsonResponse);
+            //    StreamWriter writer = new(conectedClients.First(c => c.Key == client).Value.GetStream()) { AutoFlush = true };
+            //    writer.WriteLine(jsonResponse);
 
-            });
+            //});
         }
     }
 }
