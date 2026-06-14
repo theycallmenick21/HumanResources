@@ -2,7 +2,7 @@
 using HumanResources.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
-namespace HumanResources.Infrastructure.Repository
+namespace HumanResources.Infrastructure.Repositories
 {
     public class GenericRepository<T> : IGenericRepository<T> where T : class
     {

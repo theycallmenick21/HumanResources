@@ -2,7 +2,7 @@
 
 namespace HumanResources.Application.Interfaces
 {
-    public interface ICountryService
+    public interface ICountryService : IGenericService<Country>
     {
 
     }

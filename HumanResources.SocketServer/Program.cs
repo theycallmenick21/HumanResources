@@ -1,4 +1,7 @@
-﻿using System.Net;
+﻿using HumanResources.Application.Interfaces;
+using HumanResources.SocketServer.Config;
+using Microsoft.Extensions.DependencyInjection;
+using System.Net;
 using System.Net.Sockets;
 
 namespace HumanResources.SocketServer
@@ -6,9 +9,17 @@ namespace HumanResources.SocketServer
     class Program
     {
         static Dictionary<string, TcpClient> conectedClients = [];
-
+        static ServiceCollection services = new();
+        static ServiceProvider? serviceProvider;
+        static ICountryService? countryService;
         static async Task Main(string[] args)
         {
+            services.ConfigureServices();
+            serviceProvider = services.BuildServiceProvider();
+            countryService = serviceProvider.GetRequiredService<ICountryService>();
+
+            await countryService.GetAllAsync();
+
             Console.Title = "SERVIDOR DE CHAT BIDIRECCIONAL";
 
             TcpListener server = new(IPAddress.Loopback, 5000);
@@ -23,7 +34,7 @@ namespace HumanResources.SocketServer
             }
         }
 
-        static void HandleClient(TcpClient client)
+        static async Task HandleClient(TcpClient client)
         {
             NetworkStream stream = client.GetStream();
             StreamReader reader = new(stream);
@@ -45,7 +56,7 @@ namespace HumanResources.SocketServer
                     string mensaje = reader.ReadLine()!;
 
                     if (nombreUsuario != string.Empty)
-                        ProccessRequest(mensaje);
+                        await ProccessRequestAsync(mensaje);
                 }
             }
             catch (Exception ex)
@@ -64,7 +75,7 @@ namespace HumanResources.SocketServer
             }
         }
 
-        static void ProccessRequest(string mensaje)
+        static async Task ProccessRequestAsync(string mensaje)
         {
             string[] parts = mensaje.Split('|', 4);
 
@@ -73,18 +84,12 @@ namespace HumanResources.SocketServer
             int action = int.Parse(parts[2]);
             string data = parts[3];
 
-            //CountryService paisService = new();
+            using var scope = serviceProvider!.CreateScope();
+            var scopedCountryService = scope.ServiceProvider.GetRequiredService<ICountryService>();
 
-            //paisService.GetAllAsync().ContinueWith(task =>
-            //{
-            //    List<Country> paises = task.Result;
+            var x = await scopedCountryService.GetAllAsync();
 
-            //    string jsonResponse = JsonSerializer.Serialize(paises);
-
-            //    StreamWriter writer = new(conectedClients.First(c => c.Key == client).Value.GetStream()) { AutoFlush = true };
-            //    writer.WriteLine(jsonResponse);
-
-            //});
+            Console.WriteLine(x);
         }
     }
 }

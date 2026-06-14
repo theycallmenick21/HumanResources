@@ -2,7 +2,7 @@
 using HumanResources.Domain.Interfaces;
 using HumanResources.Infrastructure.Data;
 
-namespace HumanResources.Infrastructure.Repository
+namespace HumanResources.Infrastructure.Repositories
 {
     public class RecordRepository : GenericRepository<Record>, IRecordRepository
     {
