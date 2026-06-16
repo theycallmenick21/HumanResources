@@ -4,6 +4,5 @@ namespace HumanResources.Application.Interfaces
 {
     public interface ICountryService : IGenericService<Country>
     {
-
     }
 }

@@ -2,7 +2,7 @@
 
 namespace HumanResources.Application.Interfaces
 {
-    public interface ICityService : IGenericService<City>
+    public interface IRecordService : IGenericService<Record>
     {
     }
 }

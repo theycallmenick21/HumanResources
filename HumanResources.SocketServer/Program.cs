@@ -77,13 +77,6 @@ namespace HumanResources.SocketServer
 
         static async Task ProccessRequestAsync(string mensaje)
         {
-            string[] parts = mensaje.Split('|', 4);
-
-            string client = parts[0];
-            int entity = int.Parse(parts[1]);
-            int action = int.Parse(parts[2]);
-            string data = parts[3];
-
             using var scope = serviceProvider!.CreateScope();
             var scopedCountryService = scope.ServiceProvider.GetRequiredService<ICountryService>();
 
