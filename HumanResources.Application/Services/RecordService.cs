@@ -1,10 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using HumanResources.Application.Interfaces;
+using HumanResources.Domain.Entities;
+using HumanResources.Domain.Interfaces;
 
 namespace HumanResources.Application.Services
 {
-    internal class RecordService
+    public class RecordService : GenericService<Record>, IRecordService
     {
+        public RecordService(IGenericRepository<Record> repository) : base(repository)
+        {
+        }
     }
 }

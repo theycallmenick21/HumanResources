@@ -15,7 +15,6 @@ namespace HumanResources.SocketServer.Config
 
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
-            services.AddScoped<ICountryRepository, CountryRepository>();
             services.AddScoped<ICountryService, CountryService>();
 
             return services;

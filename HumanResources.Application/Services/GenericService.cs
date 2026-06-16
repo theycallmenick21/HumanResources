@@ -1,16 +1,22 @@
 ﻿using HumanResources.Application.Interfaces;
-using HumanResources.Infrastructure.Data;
-using HumanResources.Infrastructure.Repositories;
+using HumanResources.Domain.Interfaces;
 
 namespace HumanResources.Application.Services
 {
     public class GenericService<T> : IGenericService<T> where T : class
     {
+        private readonly IGenericRepository<T> _repository;
+
+        public GenericService(IGenericRepository<T> repository)
+        {
+            _repository = repository;
+        }
+
         public async Task<bool> InsertAsync(T entidad)
         {
             try
             {
-                await new GenericRepository<T>(new HumanResourcesContext()).InsertAsync(entidad);
+                await _repository.InsertAsync(entidad);
                 return true;
             }
             catch (Exception ex)
@@ -24,7 +30,7 @@ namespace HumanResources.Application.Services
         {
             try
             {
-                await new GenericRepository<T>(new HumanResourcesContext()).UpdateAsync(entidad);
+                await _repository.UpdateAsync(entidad);
                 return true;
             }
             catch (Exception ex)
@@ -38,7 +44,7 @@ namespace HumanResources.Application.Services
         {
             try
             {
-                await new GenericRepository<T>(new HumanResourcesContext()).DeleteAsync(id);
+                await _repository.DeleteAsync(id);
                 return true;
             }
             catch (Exception ex)
@@ -52,7 +58,7 @@ namespace HumanResources.Application.Services
         {
             try
             {
-                return await new GenericRepository<T>(new HumanResourcesContext()).GetByIdAsync(id);
+                return await _repository.GetByIdAsync(id);
             }
             catch (Exception ex)
             {
@@ -65,7 +71,8 @@ namespace HumanResources.Application.Services
         {
             try
             {
-                return (List<T>)await new GenericRepository<T>(new HumanResourcesContext()).GetAllAsync();
+                var resultados = await _repository.GetAllAsync();
+                return [.. resultados];
             }
             catch (Exception ex)
             {

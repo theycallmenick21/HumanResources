@@ -1,10 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using HumanResources.Application.Interfaces;
+using HumanResources.Domain.Entities;
+using HumanResources.Domain.Interfaces;
 
 namespace HumanResources.Application.Services
 {
-    internal class LocationService
+    public class LocationService : GenericService<Location>, ILocationService
     {
+        public LocationService(IGenericRepository<Location> repository) : base(repository)
+        {
+        }
     }
 }

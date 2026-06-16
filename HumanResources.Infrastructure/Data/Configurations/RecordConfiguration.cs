@@ -8,7 +8,7 @@ namespace HumanResources.Infrastructure.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<Record> builder)
         {
-            builder.ToTable("record");
+            builder.ToTable("Record");
 
             builder.HasKey(r => new { r.EmployeeId, r.StartDate });
 
