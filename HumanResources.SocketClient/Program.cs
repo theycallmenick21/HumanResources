@@ -143,7 +143,7 @@ namespace HumanResources.SocketClient
             Console.Clear();
             Console.CursorVisible = true;
 
-            string username = user;
+            string username = user!;
             string actionName = ActionHelper.ObtainAction(action);
             string entityName = entity.ToString().ToUpper();
 

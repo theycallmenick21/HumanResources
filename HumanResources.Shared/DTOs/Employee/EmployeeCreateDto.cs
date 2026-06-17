@@ -1,8 +1,7 @@
-﻿namespace HumanResources.Domain.Entities
+﻿namespace HumanResources.Shared.DTOs.Employee
 {
-    public class Employee
+    public class EmployeeCreateDto
     {
-        public int Id { get; set; }
         public required string FirstName { get; set; }
         public required string LastName { get; set; }
         public required string Email { get; set; }
@@ -10,8 +9,6 @@
         public decimal Salary { get; set; }
         public int RoleId { get; set; }
         public int DepartmentId { get; set; }
-        public Role? Role { get; set; }
-        public Department? Department { get; set; }
 
     }
 }
