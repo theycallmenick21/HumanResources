@@ -3,7 +3,7 @@
 ![.NET](https://img.shields.io/badge/.NET-5C2D91?style=for-the-badge&logo=.net&logoColor=white)
 ![C#](https://img.shields.io/badge/c%23-%23239120.svg?style=for-the-badge&logo=c-sharp&logoColor=white)
 ![MySQL](https://img.shields.io/badge/mysql-%2300f.svg?style=for-the-badge&logo=mysql&logoColor=white)
-![Architecture](https://img.shields.io/badge/DDD-brightgreen?style=for-the-badge)
+![Architecture](https://img.shields.io/badge/Architecture-DDD-brightgreen?style=for-the-badge)
 
 A robust, client-server transactional application built with C# and .NET. This project simulates a complete Human Resources management system, utilizing TCP Sockets for real-time bidirectional communication and strictly adhering to Domain-Driven Design (DDD) principles.
 
