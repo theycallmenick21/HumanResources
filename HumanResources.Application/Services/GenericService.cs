@@ -71,7 +71,7 @@ namespace HumanResources.Application.Services
         {
             try
             {
-                var resultados = await _repository.GetAllAsync();
+                IEnumerable<T> resultados = await _repository.GetAllAsync();
                 return [.. resultados];
             }
             catch (Exception ex)

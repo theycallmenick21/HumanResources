@@ -57,7 +57,7 @@ namespace HumanResources.Infrastructure.Repositories
         {
             try
             {
-                var entidad = await _dbSet.FindAsync(id);
+                T? entidad = await _dbSet.FindAsync(id);
                 if (entidad == null) return false;
 
                 _dbSet.Remove(entidad);

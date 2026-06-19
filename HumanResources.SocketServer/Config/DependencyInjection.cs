@@ -15,7 +15,13 @@ namespace HumanResources.SocketServer.Config
 
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
+            services.AddScoped<ICityService, CityService>();
             services.AddScoped<ICountryService, CountryService>();
+            services.AddScoped<IDepartmentService, DepartmentService>();
+            services.AddScoped<IEmployeeService, EmployeeService>();
+            services.AddScoped<ILocationService, LocationService>();
+            services.AddScoped<IRecordService, RecordService>();
+            services.AddScoped<IRoleService, RoleService>();
 
             return services;
         }
