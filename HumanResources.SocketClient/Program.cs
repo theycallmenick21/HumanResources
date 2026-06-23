@@ -81,10 +81,10 @@ namespace HumanResources.SocketClient
             }
         }
 
-        static void HandleSubMenu(EntitiesEnum entidad)
+        static void HandleSubMenu(EntitiesEnum entity)
         {
             bool back = false;
-            string entityName = entidad switch
+            string entityName = entity switch
             {
                 EntitiesEnum.City => "CIUDAD",
                 EntitiesEnum.Country => "PAÍS",
@@ -101,6 +101,9 @@ namespace HumanResources.SocketClient
                 $"[*] Consultar Todos los registros en {entityName}",
                 $"[?] Consultar {entityName} por ID"
             ];
+
+            if (entity == EntitiesEnum.Record)
+                options = [.. options.ExceptBy([$"[+] Insertar Nuevo {entityName}"], o => o)];
 
             while (!back)
             {
@@ -120,7 +123,7 @@ namespace HumanResources.SocketClient
                         _ => 2
                     };
 
-                    ProcessTransaction(entidad, realAction);
+                    ProcessTransaction(entity, realAction);
                 }
             }
         }
@@ -260,7 +263,7 @@ namespace HumanResources.SocketClient
                 "[x] Borrar este registro",
             ];
 
-            if (entity == EntitiesEnum.Role)
+            if (entity == EntitiesEnum.Record)
                 options = [.. options.ExceptBy(["[x] Borrar este registro"], o => o)];
 
             int selection = MenuManager.ShowMenu($"ACCIÓN PARA: {displayString}", options);

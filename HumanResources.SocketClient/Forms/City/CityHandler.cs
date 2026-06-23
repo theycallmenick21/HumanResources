@@ -23,7 +23,16 @@ namespace HumanResources.SocketClient.Forms.City
             string name = Console.ReadLine()!;
 
             Console.Write("Ingrese el ID del País asociado: ");
-            int countryId = int.Parse(Console.ReadLine()!);
+            int countryId;
+            while (true)
+            {
+                string input = Console.ReadLine()!;
+                if (int.TryParse(input, out countryId)) break;
+
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Error: Por favor ingrese un número entero válido.");
+                Console.ResetColor();
+            }
 
             CityCreateDto cityCreateDto = new() { Name = name, CountryId = countryId };
             return JsonSerializer.Serialize(cityCreateDto);
@@ -32,22 +41,31 @@ namespace HumanResources.SocketClient.Forms.City
         public static string UpdateCityForm(JsonElement dbData)
         {
             int id = dbData.GetProperty("Id").GetInt32();
-            string nombreActual = dbData.GetProperty("Name").GetString()!;
-            int paisActual = dbData.GetProperty("CountryId").GetInt32();
+            string storedName = dbData.GetProperty("Name").GetString()!;
+            int storedCoundtryId = dbData.GetProperty("CountryId").GetInt32();
 
             Console.WriteLine("\n[~] MODO EDICIÓN");
             Console.WriteLine("Instrucción: Escriba el nuevo valor o presione ENTER para mantener el valor actual.\n");
 
-            string nuevoNombre = ConsoleHelper.ShowValuesToUpdate("Nombre de la Ciudad", nombreActual);
+            string newName = ConsoleHelper.ShowValuesToUpdate("Nombre de la Ciudad", storedName);
+            string newCountryStr = ConsoleHelper.ShowValuesToUpdate("ID del País asociado", storedCoundtryId.ToString());
 
-            string nuevoPaisStr = ConsoleHelper.ShowValuesToUpdate("ID del País asociado", paisActual.ToString());
-            int nuevoPaisId = int.Parse(nuevoPaisStr);
+            int newCountryId;
+            while (true)
+            {
+                string input = ConsoleHelper.ShowValuesToUpdate("ID del País", storedCoundtryId.ToString());
+                if (int.TryParse(input, out newCountryId)) break;
+
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Error: Por favor ingrese un número entero válido.");
+                Console.ResetColor();
+            }
 
             CityUpdateDto data = new()
             {
                 Id = id,
-                Name = nuevoNombre,
-                CountryId = nuevoPaisId
+                Name = newName,
+                CountryId = newCountryId
             };
 
             return JsonSerializer.Serialize(data);
@@ -55,6 +73,6 @@ namespace HumanResources.SocketClient.Forms.City
 
         private static string GetCityByIdForm() => JsonSerializer.Serialize(new { Id = AskId(EntitiesEnum.City) });
 
-        private static string DeleteteCityForm(int? idPredefinido) => JsonSerializer.Serialize(new { Id = idPredefinido ?? AskId(EntitiesEnum.City) });
+        private static string DeleteteCityForm(int? predefinedId) => JsonSerializer.Serialize(new { Id = predefinedId ?? AskId(EntitiesEnum.City) });
     }
 }
