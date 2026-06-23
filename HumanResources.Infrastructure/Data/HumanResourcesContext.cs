@@ -27,6 +27,7 @@ namespace HumanResources.Infrastructure.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            modelBuilder.Entity<Employee>().HasQueryFilter(e => e.IsActive);
             modelBuilder.ApplyConfigurationsFromAssembly(System.Reflection.Assembly.GetExecutingAssembly());
         }
     }

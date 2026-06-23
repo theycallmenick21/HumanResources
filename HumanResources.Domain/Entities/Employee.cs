@@ -1,6 +1,8 @@
-﻿namespace HumanResources.Domain.Entities
+﻿using HumanResources.Domain.Interfaces;
+
+namespace HumanResources.Domain.Entities
 {
-    public class Employee
+    public class Employee : ISoftDelete
     {
         public int Id { get; set; }
         public required string FirstName { get; set; }
@@ -12,6 +14,6 @@
         public int DepartmentId { get; set; }
         public Role? Role { get; set; }
         public Department? Department { get; set; }
-
+        public bool IsActive { get; set; } = true;
     }
 }

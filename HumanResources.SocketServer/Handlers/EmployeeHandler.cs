@@ -35,7 +35,7 @@ namespace HumanResources.SocketServer.Handlers
                             DepartmentId = createDto.DepartmentId
                         };
 
-                        Response<bool> insertResponse = await _employeeService.InsertAsync(newEmployee);
+                        Response<bool> insertResponse = await _employeeService.InsertEmployeeAsync(newEmployee);
                         return JsonSerializer.Serialize(insertResponse);
 
                     case 1:
@@ -56,7 +56,7 @@ namespace HumanResources.SocketServer.Handlers
                             DepartmentId = updateDto.DepartmentId
                         };
 
-                        Response<bool> updateResponse = await _employeeService.UpdateAsync(employeeToUpdate);
+                        Response<bool> updateResponse = await _employeeService.UpdateEmployeeAsync(employeeToUpdate);
                         return JsonSerializer.Serialize(updateResponse);
 
                     case 2:
@@ -106,7 +106,7 @@ namespace HumanResources.SocketServer.Handlers
                         JsonDocument deleteDoc = JsonDocument.Parse(jsonPayload);
                         int deletedId = deleteDoc.RootElement.GetProperty("Id").GetInt32();
 
-                        Response<bool> deleteResponse = await _employeeService.DeleteAsync(deletedId);
+                        Response<bool> deleteResponse = await _employeeService.DeleteEmployeeAsync(deletedId);
                         return JsonSerializer.Serialize(deleteResponse);
 
                     default:

@@ -82,12 +82,21 @@ namespace HumanResources.Infrastructure.Repositories
         {
             try
             {
-                T? entidad = await _dbSet.FindAsync(id);
+                T? entity = await _dbSet.FindAsync(id);
 
-                if (entidad == null)
+                if (entity == null)
                     return Response<bool>.Fail($"No se puede borrar: El registro con ID {id} no existe.");
 
-                _dbSet.Remove(entidad);
+                if (entity is ISoftDelete softDeletableEntity)
+                {
+                    softDeletableEntity.IsActive = false;
+                    _dbSet.Update(entity);
+                }
+                else
+                {
+                    _dbSet.Remove(entity);
+                }
+
                 await _context.SaveChangesAsync();
                 return Response<bool>.Success(true, "Registro eliminado correctamente.");
             }
