@@ -2,12 +2,12 @@
 {
     public enum EntitiesEnum
     {
+        City,
         Country,
         Department,
-        City,
-        Location,
-        Role,
         Employee,
-        Record
+        Location,
+        Record,
+        Role
     }
 }

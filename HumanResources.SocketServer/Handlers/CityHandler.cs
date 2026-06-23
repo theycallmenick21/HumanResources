@@ -1,14 +1,16 @@
 ﻿using HumanResources.Application.Interfaces;
 using HumanResources.Domain.Entities;
 using HumanResources.Shared.DTOs.City;
+using HumanResources.Shared.Wrappers;
+using HumanResources.SocketServer.Helpers;
 using Microsoft.Extensions.DependencyInjection;
 using System.Text.Json;
 
 namespace HumanResources.SocketServer.Handlers
 {
-    public class CityHandler
+    internal class CityHandler
     {
-        public static async Task<string> ProcessAsync(int action, string jsonPayload, IServiceProvider scopedProvider)
+        internal static async Task<string> ProcessAsync(int action, string jsonPayload, IServiceProvider scopedProvider)
         {
             ICityService _cityService = scopedProvider.GetRequiredService<ICityService>();
 
@@ -18,48 +20,82 @@ namespace HumanResources.SocketServer.Handlers
                 {
                     case 0:
                         CityCreateDto? createDto = JsonSerializer.Deserialize<CityCreateDto>(jsonPayload);
-                        if (createDto == null) return "ERROR: JSON inválido para crear ciudad.";
 
-                        City newCity = new() { Name = createDto.Name };
-                        bool inserted = await _cityService.InsertAsync(newCity);
+                        if (createDto == null)
+                            return SerializeHelper.SerializeFail("JSON inválido para crear ciudad.");
 
-                        return inserted ? "Ciudad creada exitosamente." : "ERROR: No se pudo crear la ciudad.";
+                        City newCity = new()
+                        {
+                            Name = createDto.Name,
+                            CountryId = createDto.CountryId
+                        };
+
+                        Response<bool> insertResponse = await _cityService.InsertAsync(newCity);
+                        return JsonSerializer.Serialize(insertResponse);
+
+                    case 1:
+                        CityUpdateDto? updateDto = JsonSerializer.Deserialize<CityUpdateDto>(jsonPayload);
+
+                        if (updateDto == null)
+                            return SerializeHelper.SerializeFail("JSON inválido para actualizar ciudad.");
+
+                        City cityToUpdate = new()
+                        {
+                            Id = updateDto.Id,
+                            Name = updateDto.Name,
+                            CountryId = updateDto.CountryId
+                        };
+
+                        Response<bool> updateResponse = await _cityService.UpdateAsync(cityToUpdate);
+                        return JsonSerializer.Serialize(updateResponse);
 
                     case 2:
-                        List<City> list = await _cityService.GetAllAsync();
+                        Response<IEnumerable<City>> responseList = await _cityService.GetAllAsync();
 
-                        List<CityResponseDto> responseList = [.. list.Select(p => new CityResponseDto
+                        if (!responseList.IsSuccess)
+                            return JsonSerializer.Serialize(Response<List<CityResponseDto>>.Fail(responseList.Message));
+
+                        List<CityResponseDto> list = [.. responseList.Data!.Select(p => new CityResponseDto
                         {
                             Id = p.Id,
                             Name = p.Name,
+                            CountryId = p.CountryId
                         })];
 
-                        return JsonSerializer.Serialize(responseList);
+                        return JsonSerializer.Serialize(Response<List<CityResponseDto>>.Success(list, "Ciudades recuperadas con éxito."));
 
                     case 3:
                         JsonDocument searchDoc = JsonDocument.Parse(jsonPayload);
                         int searchedId = searchDoc.RootElement.GetProperty("Id").GetInt32();
 
-                        City? city = await _cityService.GetByIdAsync(searchedId);
-                        if (city == null) return "ERROR: Ciudad no encontrada.";
+                        Response<City> cityResponse = await _cityService.GetByIdAsync(searchedId);
 
-                        CityResponseDto responseDto = new() { Id = city.Id, Name = city.Name };
-                        return JsonSerializer.Serialize(new List<CityResponseDto> { responseDto });
+                        if (!cityResponse.IsSuccess)
+                            return JsonSerializer.Serialize(Response<CityResponseDto>.Fail(cityResponse.Message));
+
+                        CityResponseDto responseDto = new()
+                        {
+                            Id = cityResponse.Data!.Id,
+                            Name = cityResponse.Data.Name,
+                            CountryId = cityResponse.Data.CountryId
+                        };
+
+                        return JsonSerializer.Serialize(Response<CityResponseDto>.Success(responseDto));
 
                     case 5:
                         JsonDocument deleteDoc = JsonDocument.Parse(jsonPayload);
                         int deletedId = deleteDoc.RootElement.GetProperty("Id").GetInt32();
 
-                        bool deleted = await _cityService.DeleteAsync(deletedId);
-                        return deleted ? "Registro borrado exitosamente." : "ERROR: No se pudo borrar o el ID no existe.";
+                        Response<bool> deleteResponse = await _cityService.DeleteAsync(deletedId);
+                        return JsonSerializer.Serialize(deleteResponse);
 
                     default:
-                        return "ERROR: Acción no implementada.";
+                        return SerializeHelper.SerializeFail("Acción no implementada.");
                 }
             }
             catch (Exception ex)
             {
-                return $"ERROR EN CITY HANDLER: {ex.Message}";
+                return SerializeHelper.SerializeFail($"ERROR EN CITY HANDLER: {ex.Message}");
             }
         }
     }

@@ -5,14 +5,14 @@ namespace HumanResources.SocketClient.Helpers
 {
     public static class JsonExtractor
     {
-        public static int ExtraerIdReal(EntitiesEnum entidad, JsonElement item)
+        public static int ExtractRealId(EntitiesEnum entity, JsonElement item)
         {
             try
             {
                 if (item.TryGetProperty("Id", out JsonElement idElement))
                     return idElement.GetInt32();
 
-                return entidad switch
+                return entity switch
                 {
                     EntitiesEnum.City => item.GetProperty("Id").GetInt32(),
                     EntitiesEnum.Country => item.GetProperty("Id").GetInt32(),
@@ -21,7 +21,7 @@ namespace HumanResources.SocketClient.Helpers
                     EntitiesEnum.Location => item.GetProperty("Id").GetInt32(),
                     EntitiesEnum.Record => item.GetProperty("Id").GetInt32(),
                     EntitiesEnum.Role => item.GetProperty("Id").GetInt32(),
-                    _ => throw new Exception($"No se encontró la propiedad ID para {entidad}")
+                    _ => throw new Exception($"No se encontró la propiedad ID para {entity}")
                 };
             }
             catch
@@ -30,18 +30,18 @@ namespace HumanResources.SocketClient.Helpers
             }
         }
 
-        public static string ExtraerDisplayString(EntitiesEnum entidad, JsonElement item)
+        public static string ExtractDisplayString(EntitiesEnum entity, JsonElement item)
         {
             try
             {
-                return entidad switch
+                return entity switch
                 {
                     EntitiesEnum.City => $"ID: {item.GetProperty("Id")} | Ciudad: {item.GetProperty("Name")}",
                     EntitiesEnum.Country => $"ID: {item.GetProperty("Id")} | País: {item.GetProperty("Name")}",
                     EntitiesEnum.Department => $"ID: {item.GetProperty("Id")} | Depto: {item.GetProperty("Name")}",
-                    EntitiesEnum.Employee => $"ID: {item.GetProperty("Id")} | Empleado: {item.GetProperty("Name")}",
+                    EntitiesEnum.Employee => $"ID: {item.GetProperty("Id")} | Empleado: {item.GetProperty("Email")}",
                     EntitiesEnum.Location => $"ID: {item.GetProperty("Id")} | Ubicación: {item.GetProperty("Address")}",
-                    EntitiesEnum.Record => $"ID: {item.GetProperty("Id")} | Registro: {item.GetProperty("EmployeeId")}",
+                    EntitiesEnum.Record => $"ID: {item.GetProperty("EmployeeId")} | Registro: {item.GetProperty("EmployeeId")}",
                     EntitiesEnum.Role => $"ID: {item.GetProperty("Id")} | Rol: {item.GetProperty("Name")}",
                     _ => item.ToString()
                 };

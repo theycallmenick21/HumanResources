@@ -1,5 +1,6 @@
 ﻿using HumanResources.Domain.Enums;
 using HumanResources.SocketServer.Handlers;
+using HumanResources.SocketServer.Helpers;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HumanResources.SocketServer.Routing
@@ -11,11 +12,11 @@ namespace HumanResources.SocketServer.Routing
             try
             {
                 string[] parts = rawMessage.Split('|', 4);
-                if (parts.Length < 4) return "ERROR: Formato de mensaje incorrecto.";
+                if (parts.Length < 4) return SerializeHelper.SerializeFail("ERROR: Formato de mensaje incorrecto.");
 
                 string user = parts[0];
-                if (!Enum.TryParse(parts[1], out EntitiesEnum entity)) return "ERROR: Entidad no reconocida.";
-                if (!int.TryParse(parts[2], out int action)) return "ERROR: Acción no válida.";
+                if (!Enum.TryParse(parts[1], out EntitiesEnum entity)) return SerializeHelper.SerializeFail("ERROR: Entidad no reconocida.");
+                if (!int.TryParse(parts[2], out int action)) return SerializeHelper.SerializeFail("ERROR: Acción no válida.");
                 string payloadJson = parts[3];
 
                 using IServiceScope scope = serviceProvider.CreateScope();
@@ -29,12 +30,12 @@ namespace HumanResources.SocketServer.Routing
                     EntitiesEnum.Location => await LocationHandler.ProcessAsync(action, payloadJson, scope.ServiceProvider),
                     EntitiesEnum.Record => await RecordHandler.ProcessAsync(action, payloadJson, scope.ServiceProvider),
                     EntitiesEnum.Role => await RoleHandler.ProcessAsync(action, payloadJson, scope.ServiceProvider),
-                    _ => $"ERROR: La entidad {entity} no está soportada."
+                    _ => SerializeHelper.SerializeFail($"ERROR: La entidad {entity} no está soportada.")
                 };
             }
             catch (Exception ex)
             {
-                return $"ERROR DEL SERVIDOR: {ex.Message}";
+                return SerializeHelper.SerializeFail($"ERROR DEL SERVIDOR: {ex.Message}");
             }
         }
     }

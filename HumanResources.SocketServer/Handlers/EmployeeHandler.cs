@@ -1,6 +1,8 @@
 ﻿using HumanResources.Application.Interfaces;
 using HumanResources.Domain.Entities;
 using HumanResources.Shared.DTOs.Employee;
+using HumanResources.Shared.Wrappers;
+using HumanResources.SocketServer.Helpers;
 using Microsoft.Extensions.DependencyInjection;
 using System.Text.Json;
 
@@ -8,7 +10,7 @@ namespace HumanResources.SocketServer.Handlers
 {
     internal class EmployeeHandler
     {
-        public static async Task<string> ProcessAsync(int action, string jsonPayload, IServiceProvider scopedProvider)
+        internal static async Task<string> ProcessAsync(int action, string jsonPayload, IServiceProvider scopedProvider)
         {
             IEmployeeService _employeeService = scopedProvider.GetRequiredService<IEmployeeService>();
 
@@ -18,7 +20,9 @@ namespace HumanResources.SocketServer.Handlers
                 {
                     case 0:
                         EmployeeCreateDto? createDto = JsonSerializer.Deserialize<EmployeeCreateDto>(jsonPayload);
-                        if (createDto == null) return "ERROR: JSON inválido para crear empleado.";
+
+                        if (createDto == null)
+                            return SerializeHelper.SerializeFail("JSON inválido para crear empleado.");
 
                         Employee newEmployee = new()
                         {
@@ -31,14 +35,37 @@ namespace HumanResources.SocketServer.Handlers
                             DepartmentId = createDto.DepartmentId
                         };
 
-                        bool inserted = await _employeeService.InsertAsync(newEmployee);
+                        Response<bool> insertResponse = await _employeeService.InsertAsync(newEmployee);
+                        return JsonSerializer.Serialize(insertResponse);
 
-                        return inserted ? "Empleado creado exitosamente." : "ERROR: No se pudo crear el empleado.";
+                    case 1:
+                        EmployeeUpdateDto? updateDto = JsonSerializer.Deserialize<EmployeeUpdateDto>(jsonPayload);
+
+                        if (updateDto == null)
+                            return SerializeHelper.SerializeFail("JSON inválido para actualizar empleado.");
+
+                        Employee employeeToUpdate = new()
+                        {
+                            Id = updateDto.Id,
+                            FirstName = updateDto.FirstName,
+                            LastName = updateDto.LastName,
+                            Email = updateDto.Email,
+                            HiringDate = updateDto.HiringDate,
+                            Salary = updateDto.Salary,
+                            RoleId = updateDto.RoleId,
+                            DepartmentId = updateDto.DepartmentId
+                        };
+
+                        Response<bool> updateResponse = await _employeeService.UpdateAsync(employeeToUpdate);
+                        return JsonSerializer.Serialize(updateResponse);
 
                     case 2:
-                        List<Employee> list = await _employeeService.GetAllAsync();
+                        Response<IEnumerable<Employee>> responseList = await _employeeService.GetAllAsync();
 
-                        List<EmployeeResponseDto> responseList = [.. list.Select(p => new EmployeeResponseDto
+                        if (!responseList.IsSuccess)
+                            return JsonSerializer.Serialize(Response<List<EmployeeResponseDto>>.Fail(responseList.Message));
+
+                        List<EmployeeResponseDto> list = [.. responseList.Data!.Select(p => new EmployeeResponseDto
                         {
                             Id = p.Id,
                             FirstName = p.FirstName,
@@ -50,43 +77,45 @@ namespace HumanResources.SocketServer.Handlers
                             DepartmentId = p.DepartmentId
                         })];
 
-                        return JsonSerializer.Serialize(responseList);
+                        return JsonSerializer.Serialize(Response<List<EmployeeResponseDto>>.Success(list, "Empleados recuperados con éxito."));
 
                     case 3:
                         JsonDocument searchDoc = JsonDocument.Parse(jsonPayload);
-                        int idBuscar = searchDoc.RootElement.GetProperty("Id").GetInt32();
+                        int searchedId = searchDoc.RootElement.GetProperty("Id").GetInt32();
 
-                        Employee? employee = await _employeeService.GetByIdAsync(idBuscar);
-                        if (employee == null) return "ERROR: Empleado no encontrado.";
+                        Response<Employee> employeeResponse = await _employeeService.GetByIdAsync(searchedId);
+
+                        if (!employeeResponse.IsSuccess)
+                            return JsonSerializer.Serialize(Response<EmployeeResponseDto>.Fail(employeeResponse.Message));
 
                         EmployeeResponseDto responseDto = new()
                         {
-                            Id = employee.Id,
-                            FirstName = employee.FirstName,
-                            LastName = employee.LastName,
-                            Email = employee.Email,
-                            HiringDate = employee.HiringDate,
-                            Salary = employee.Salary,
-                            RoleId = employee.RoleId,
-                            DepartmentId = employee.DepartmentId
+                            Id = employeeResponse.Data!.Id,
+                            FirstName = employeeResponse.Data.FirstName,
+                            LastName = employeeResponse.Data.LastName,
+                            Email = employeeResponse.Data.Email,
+                            HiringDate = employeeResponse.Data.HiringDate,
+                            Salary = employeeResponse.Data.Salary,
+                            RoleId = employeeResponse.Data.RoleId,
+                            DepartmentId = employeeResponse.Data.DepartmentId
                         };
 
-                        return JsonSerializer.Serialize(new List<EmployeeResponseDto> { responseDto });
+                        return JsonSerializer.Serialize(Response<EmployeeResponseDto>.Success(responseDto));
 
                     case 5:
                         JsonDocument deleteDoc = JsonDocument.Parse(jsonPayload);
                         int deletedId = deleteDoc.RootElement.GetProperty("Id").GetInt32();
 
-                        bool deleted = await _employeeService.DeleteAsync(deletedId);
-                        return deleted ? "Registro borrado exitosamente." : "ERROR: No se pudo borrar o el ID no existe.";
+                        Response<bool> deleteResponse = await _employeeService.DeleteAsync(deletedId);
+                        return JsonSerializer.Serialize(deleteResponse);
 
                     default:
-                        return "ERROR: Acción no implementada.";
+                        return SerializeHelper.SerializeFail("Acción no implementada.");
                 }
             }
             catch (Exception ex)
             {
-                return $"ERROR EN EMPLOYEE HANDLER: {ex.Message}";
+                return SerializeHelper.SerializeFail($"ERROR EN EMPLOYEE HANDLER: {ex.Message}");
             }
         }
     }

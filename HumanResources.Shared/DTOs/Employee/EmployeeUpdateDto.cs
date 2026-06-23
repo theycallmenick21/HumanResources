@@ -1,7 +1,8 @@
 ﻿namespace HumanResources.Shared.DTOs.Employee
 {
-    public class EmployeeCreateDto
+    public class EmployeeUpdateDto
     {
+        public int Id { get; set; }
         public required string FirstName { get; set; }
         public required string LastName { get; set; }
         public required string Email { get; set; }

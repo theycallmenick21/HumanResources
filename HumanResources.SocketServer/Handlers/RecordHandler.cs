@@ -1,6 +1,8 @@
 ﻿using HumanResources.Application.Interfaces;
 using HumanResources.Domain.Entities;
 using HumanResources.Shared.DTOs.Record;
+using HumanResources.Shared.Wrappers;
+using HumanResources.SocketServer.Helpers;
 using Microsoft.Extensions.DependencyInjection;
 using System.Text.Json;
 
@@ -8,7 +10,7 @@ namespace HumanResources.SocketServer.Handlers
 {
     internal class RecordHandler
     {
-        public static async Task<string> ProcessAsync(int action, string jsonPayload, IServiceProvider scopedProvider)
+        internal static async Task<string> ProcessAsync(int action, string jsonPayload, IServiceProvider scopedProvider)
         {
             IRecordService _recordService = scopedProvider.GetRequiredService<IRecordService>();
 
@@ -18,7 +20,9 @@ namespace HumanResources.SocketServer.Handlers
                 {
                     case 0:
                         RecordCreateDto? createDto = JsonSerializer.Deserialize<RecordCreateDto>(jsonPayload);
-                        if (createDto == null) return "ERROR: JSON inválido para crear registro.";
+
+                        if (createDto == null)
+                            return SerializeHelper.SerializeFail("JSON inválido para crear registro.");
 
                         Record newRecord = new()
                         {
@@ -28,14 +32,35 @@ namespace HumanResources.SocketServer.Handlers
                             RoleId = createDto.RoleId,
                             DepartmentId = createDto.DepartmentId
                         };
-                        bool inserted = await _recordService.InsertAsync(newRecord);
 
-                        return inserted ? "Registro creado exitosamente." : "ERROR: No se pudo crear el registro.";
+                        Response<bool> insertResponse = await _recordService.InsertAsync(newRecord);
+                        return JsonSerializer.Serialize(insertResponse);
+
+                    case 1:
+                        RecordUpdateDto? updateDto = JsonSerializer.Deserialize<RecordUpdateDto>(jsonPayload);
+
+                        if (updateDto == null)
+                            return SerializeHelper.SerializeFail("JSON inválido para actualizar registro.");
+
+                        Record recordToUpdate = new()
+                        {
+                            EmployeeId = updateDto.EmployeeId,
+                            StartDate = updateDto.StartDate,
+                            EndDate = updateDto.EndDate,
+                            RoleId = updateDto.RoleId,
+                            DepartmentId = updateDto.DepartmentId
+                        };
+
+                        Response<bool> updateResponse = await _recordService.UpdateAsync(recordToUpdate);
+                        return JsonSerializer.Serialize(updateResponse);
 
                     case 2:
-                        List<Record> list = await _recordService.GetAllAsync();
+                        Response<IEnumerable<Record>> responseList = await _recordService.GetAllAsync();
 
-                        List<RecordResponseDto> listaResponse = [.. list.Select(p => new RecordResponseDto
+                        if (!responseList.IsSuccess)
+                            return JsonSerializer.Serialize(Response<List<RecordResponseDto>>.Fail(responseList.Message));
+
+                        List<RecordResponseDto> list = [.. responseList.Data!.Select(p => new RecordResponseDto
                         {
                             EmployeeId = p.EmployeeId,
                             StartDate = p.StartDate,
@@ -44,40 +69,35 @@ namespace HumanResources.SocketServer.Handlers
                             DepartmentId = p.DepartmentId
                         })];
 
-                        return JsonSerializer.Serialize(listaResponse);
+                        return JsonSerializer.Serialize(Response<List<RecordResponseDto>>.Success(list, "Registros recuperados con éxito."));
 
                     case 3:
                         JsonDocument searchDoc = JsonDocument.Parse(jsonPayload);
-                        int idBuscar = searchDoc.RootElement.GetProperty("Id").GetInt32();
+                        int searchedId = searchDoc.RootElement.GetProperty("Id").GetInt32();
 
-                        Record? record = await _recordService.GetByIdAsync(idBuscar);
-                        if (record == null) return "ERROR: Registro no encontrado.";
+                        Response<Record> recordResponse = await _recordService.GetByIdAsync(searchedId);
+
+                        if (!recordResponse.IsSuccess)
+                            return JsonSerializer.Serialize(Response<RecordResponseDto>.Fail(recordResponse.Message));
 
                         RecordResponseDto responseDto = new()
                         {
-                            EmployeeId = record.EmployeeId,
-                            StartDate = record.StartDate,
-                            EndDate = record.EndDate,
-                            RoleId = record.RoleId,
-                            DepartmentId = record.DepartmentId
+                            EmployeeId = recordResponse.Data!.EmployeeId,
+                            StartDate = recordResponse.Data.StartDate,
+                            EndDate = recordResponse.Data.EndDate,
+                            RoleId = recordResponse.Data.RoleId,
+                            DepartmentId = recordResponse.Data.DepartmentId
                         };
 
-                        return JsonSerializer.Serialize(new List<RecordResponseDto> { responseDto });
-
-                    case 5:
-                        JsonDocument deleteDoc = JsonDocument.Parse(jsonPayload);
-                        int deletedId = deleteDoc.RootElement.GetProperty("Id").GetInt32();
-
-                        bool deleted = await _recordService.DeleteAsync(deletedId);
-                        return deleted ? "Registro borrado exitosamente." : "ERROR: No se pudo borrar o el ID no existe.";
+                        return JsonSerializer.Serialize(Response<RecordResponseDto>.Success(responseDto));
 
                     default:
-                        return "ERROR: Acción no implementada.";
+                        return SerializeHelper.SerializeFail("Acción no implementada.");
                 }
             }
             catch (Exception ex)
             {
-                return $"ERROR EN RECORD HANDLER: {ex.Message}";
+                return SerializeHelper.SerializeFail($"ERROR EN RECORD HANDLER: {ex.Message}");
             }
         }
     }

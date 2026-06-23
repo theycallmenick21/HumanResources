@@ -1,5 +1,6 @@
 ﻿using HumanResources.Application.Interfaces;
 using HumanResources.Domain.Interfaces;
+using HumanResources.Shared.Wrappers;
 
 namespace HumanResources.Application.Services
 {
@@ -7,78 +8,16 @@ namespace HumanResources.Application.Services
     {
         private readonly IGenericRepository<T> _repository;
 
-        public GenericService(IGenericRepository<T> repository)
-        {
-            _repository = repository;
-        }
+        public GenericService(IGenericRepository<T> repository) => _repository = repository;
 
-        public async Task<bool> InsertAsync(T entidad)
-        {
-            try
-            {
-                await _repository.InsertAsync(entidad);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[Error DB - Insertar {typeof(T).Name}]: {ex.Message}");
-                return false;
-            }
-        }
+        public async Task<Response<bool>> InsertAsync(T entidad) => await _repository.InsertAsync(entidad);
 
-        public async Task<bool> UpdateAsync(T entidad)
-        {
-            try
-            {
-                await _repository.UpdateAsync(entidad);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[Error DB - Actualizar {typeof(T).Name}]: {ex.Message}");
-                return false;
-            }
-        }
+        public async Task<Response<bool>> UpdateAsync(T entidad) => await _repository.UpdateAsync(entidad);
 
-        public async Task<bool> DeleteAsync(int id)
-        {
-            try
-            {
-                await _repository.DeleteAsync(id);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[Error DB - Borrar {typeof(T).Name}]: {ex.Message}");
-                return false;
-            }
-        }
+        public async Task<Response<bool>> DeleteAsync(int id) => await _repository.DeleteAsync(id);
 
-        public async Task<T?> GetByIdAsync(int id)
-        {
-            try
-            {
-                return await _repository.GetByIdAsync(id);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[Error DB - ObtenerPorId {typeof(T).Name}]: {ex.Message}");
-                return null;
-            }
-        }
+        public async Task<Response<T>> GetByIdAsync(int id) => await _repository.GetByIdAsync(id);
 
-        public async Task<List<T>> GetAllAsync()
-        {
-            try
-            {
-                IEnumerable<T> resultados = await _repository.GetAllAsync();
-                return [.. resultados];
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[Error DB - ObtenerTodos {typeof(T).Name}]: {ex.Message}");
-                return [];
-            }
-        }
+        public async Task<Response<IEnumerable<T>>> GetAllAsync() => await _repository.GetAllAsync();
     }
 }

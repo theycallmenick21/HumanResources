@@ -1,4 +1,5 @@
 ﻿using HumanResources.Domain.Enums;
+using HumanResources.Shared.Wrappers;
 using HumanResources.SocketClient.Forms;
 using HumanResources.SocketClient.Helpers;
 using HumanResources.SocketClient.UI;
@@ -50,23 +51,32 @@ namespace HumanResources.SocketClient
         static void ExecuteMainMenu()
         {
             bool exit = false;
-            string[] entityNames = Enum.GetNames<EntitiesEnum>();
-            string[] mainMenuOptions = [.. entityNames, "Salir del Sistema"];
+            string[] mainMenuOptions =
+            [
+                "CIUDAD",
+                "PAÍS",
+                "DEPARTAMENTO",
+                "EMPLEADO",
+                "UBICACIÓN",
+                "REGISTRO",
+                "ROL",
+                "Salir del Sistema"
+            ];
 
             while (!exit)
             {
-                int selectedEntity = MenuManager.ShowMenu("MENÚ PRINCIPAL", mainMenuOptions);
+                int selectedIndex = MenuManager.ShowMenu("MENÚ PRINCIPAL", mainMenuOptions, true);
 
-                if (selectedEntity == mainMenuOptions.Length - 1)
+                if (selectedIndex == mainMenuOptions.Length - 1)
                 {
                     exit = true;
                     Console.Clear();
                     Console.WriteLine("Saliendo del sistema...");
                 }
-                else if (selectedEntity != -1)
+                else if (selectedIndex != -1)
                 {
-                    EntitiesEnum entidadSeleccionada = (EntitiesEnum)selectedEntity;
-                    HandleSubMenu(entidadSeleccionada);
+                    EntitiesEnum selectedEntity = (EntitiesEnum)selectedIndex;
+                    HandleSubMenu(selectedEntity);
                 }
             }
         }
@@ -74,26 +84,35 @@ namespace HumanResources.SocketClient
         static void HandleSubMenu(EntitiesEnum entidad)
         {
             bool back = false;
-            string entityName = entidad.ToString();
+            string entityName = entidad switch
+            {
+                EntitiesEnum.City => "CIUDAD",
+                EntitiesEnum.Country => "PAÍS",
+                EntitiesEnum.Department => "DEPARTAMENTO",
+                EntitiesEnum.Employee => "EMPLEADO",
+                EntitiesEnum.Location => "UBICACIÓN",
+                EntitiesEnum.Record => "REGISTRO",
+                EntitiesEnum.Role => "ROL",
+                _ => string.Empty
+            };
 
             string[] options = [
                 $"[+] Insertar Nuevo {entityName}",
-                $"[*] Consultar Todos los {entityName}s",
-                $"[?] Consultar {entityName} por ID",
-                "[<] Volver al menú principal"
+                $"[*] Consultar Todos los registros en {entityName}",
+                $"[?] Consultar {entityName} por ID"
             ];
 
             while (!back)
             {
-                int seleccion = MenuManager.ShowMenu($"GESTIÓN DE {entityName.ToUpper()}", options);
+                int selection = MenuManager.ShowMenu($"GESTIÓN DE {entityName.ToUpper()}", options, false);
 
-                if (seleccion == -1)
+                if (selection == -1)
                 {
                     back = true;
                 }
                 else
                 {
-                    int accionReal = seleccion switch
+                    int accionReal = selection switch
                     {
                         0 => 0,
                         1 => 2,
@@ -101,87 +120,118 @@ namespace HumanResources.SocketClient
                         _ => 2
                     };
 
-                    ProcesarTransaccion(entidad, accionReal);
+                    ProcessTransaction(entidad, accionReal);
                 }
             }
         }
 
-        static void ProcesarTransaccion(EntitiesEnum entidad, int accion, int? idPredefinido = null)
+        static void ProcessTransaction(EntitiesEnum entity, int action, int? predefinedId = null)
         {
             Console.Clear();
             Console.CursorVisible = true;
 
-            string actionStr = accion == 0 ? "CREAR" : accion == 2 ? "CONSULTAR TODOS" : accion == 3 ? "CONSULTAR ID" : accion == 5 ? "BORRAR" : "ACTUALIZAR";
-            Console.WriteLine($"--- {actionStr} {entidad.ToString().ToUpper()} ---\n");
+            string actionStr = action switch
+            {
+                0 => "CREAR",
+                1 => "ACTUALIZAR",
+                2 => "CONSULTAR TODOS LOS REGISTROS DE",
+                3 => "CONSULTAR POR ID",
+                5 => "BORRAR",
+                _ => ""
+            };
+
+            Console.WriteLine($"--- {actionStr} {entity.ToString().ToUpper()} ---\n");
 
             string payloadJson = "";
-            if (accion != 2)
-            {
-                payloadJson = FormHandler.CapturarDatos(entidad, accion, idPredefinido);
-            }
 
-            string paqueteFinal = $"{user}|{(int)entidad}|{accion}|{payloadJson}";
+            if (action != 2)
+                payloadJson = FormHandler.ProccessForm(entity, action, predefinedId);
+
+            string finalPackagedData = $"{user}|{(int)entity}|{action}|{payloadJson}";
             Console.WriteLine("\n[Enviando petición al servidor...]");
-            writer?.WriteLine(paqueteFinal);
+            writer?.WriteLine(finalPackagedData);
 
             try
             {
-                string respuesta = reader?.ReadLine()!;
+                string jsonResponse = reader?.ReadLine()!;
 
-                if (accion == 2)
+                Response<JsonElement>? response = JsonSerializer.Deserialize<Response<JsonElement>>(jsonResponse) ?? throw new Exception("Respuesta nula del servidor.");
+                Console.Clear();
+
+                if (!response.IsSuccess)
                 {
-                    MostrarListaInteractiva(entidad, respuesta);
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine($"\n[ERROR DEL SERVIDOR]: {response.Message}");
+                    Console.ResetColor();
+
+                    if (response.Errors != null && response.Errors.Count > 0)
+                    {
+                        foreach (var error in response.Errors)
+                        {
+                            Console.WriteLine($" - {error}");
+                        }
+                    }
+                    Console.WriteLine("\nPresione cualquier tecla para continuar...");
+                    Console.ReadKey(true);
+                    return;
+                }
+
+                if (action == 2)
+                {
+                    ShowInteractiveList(entity, response.Data.ToString());
                 }
                 else
                 {
-                    Console.WriteLine("\n[Respuesta del Servidor]:\n" + respuesta);
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine($"\n[ÉXITO]: {response.Message}");
+                    Console.ResetColor();
                     Console.WriteLine("\nPresione cualquier tecla para continuar...");
                     Console.ReadKey(true);
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                Console.WriteLine("\n[Error]: Se perdió la conexión con el servidor.");
+                Console.WriteLine($"\n[Error de Procesamiento]: {ex.Message}");
                 Console.ReadKey(true);
             }
 
             Console.CursorVisible = false;
         }
 
-        static void MostrarListaInteractiva(EntitiesEnum entidad, string jsonResponse)
+        static void ShowInteractiveList(EntitiesEnum entity, string jsonResponse)
         {
             try
             {
-                List<JsonElement>? registros = JsonSerializer.Deserialize<List<JsonElement>>(jsonResponse);
+                List<JsonElement>? records = JsonSerializer.Deserialize<List<JsonElement>>(jsonResponse);
 
-                if (registros == null || registros.Count == 0)
+                if (records == null || records.Count == 0)
                 {
                     Console.WriteLine("\nLa base de datos no devolvió registros.");
                     Console.ReadKey();
                     return;
                 }
 
-                bool salir = false;
-                while (!salir)
+                bool exit = false;
+                while (!exit)
                 {
-                    string[] opcionesLista = new string[registros.Count + 1];
-                    for (int i = 0; i < registros.Count; i++)
+                    string[] listOptions = new string[records.Count];
+
+                    for (int i = 0; i < records.Count; i++)
                     {
-                        opcionesLista[i] = JsonExtractor.ExtraerDisplayString(entidad, registros[i]);
+                        listOptions[i] = JsonExtractor.ExtractDisplayString(entity, records[i]);
                     }
-                    opcionesLista[registros.Count] = "[<] Volver atrás";
 
-                    int seleccion = MenuManager.ShowMenu($"REGISTROS DE {entidad.ToString().ToUpper()}", opcionesLista);
+                    int selectedOption = MenuManager.ShowMenu($"REGISTROS DE {entity.ToString().ToUpper()}", listOptions);
 
-                    if (seleccion == registros.Count)
+                    if (selectedOption == -1)
                     {
-                        salir = true;
+                        exit = true;
                     }
                     else
                     {
-                        int idSeleccionado = JsonExtractor.ExtraerIdReal(entidad, registros[seleccion]);
-                        SubMenuAccionesRegistro(entidad, idSeleccionado, opcionesLista[seleccion]);
-                        salir = true;
+                        int selectedId = JsonExtractor.ExtractRealId(entity, records[selectedOption]);
+                        ShowItemActionsMenu(entity, selectedId, listOptions[selectedOption]);
+                        exit = true;
                     }
                 }
             }
@@ -192,24 +242,19 @@ namespace HumanResources.SocketClient
             }
         }
 
-        static void SubMenuAccionesRegistro(EntitiesEnum entidad, int idRegistro, string displayString)
+        static void ShowItemActionsMenu(EntitiesEnum entity, int recordId, string displayString)
         {
-            string[] opciones = [
-                "[✎] Actualizar este registro",
+            string[] options = [
+                "[~] Actualizar este registro",
                 "[x] Borrar este registro",
-                "[<] Cancelar"
             ];
 
-            int seleccion = MenuManager.ShowMenu($"ACCIÓN PARA: {displayString}", opciones);
+            if (entity == EntitiesEnum.Role)
+                options = [.. options.ExceptBy(["[x] Borrar este registro"], o => o)];
 
-            if (seleccion == 0)
-            {
-                ProcesarTransaccion(entidad, 1, idRegistro);
-            }
-            else if (seleccion == 1)
-            {
-                ProcesarTransaccion(entidad, 5, idRegistro);
-            }
+            int selection = MenuManager.ShowMenu($"ACCIÓN PARA: {displayString}", options);
+
+            ProcessTransaction(entity, selection == 0 ? 1 : 5, recordId);
         }
     }
 }

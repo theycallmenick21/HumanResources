@@ -2,7 +2,7 @@
 {
     public static class MenuManager
     {
-        public static int ShowMenu(string title, string[] options)
+        public static int ShowMenu(string title, string[] options, bool isMainMenu = false)
         {
             int selectedIndex = 0;
 
@@ -12,7 +12,7 @@
                 Console.WriteLine("=================================================");
                 Console.WriteLine($" {title.ToUpper()}");
                 Console.WriteLine("=================================================\n");
-                Console.WriteLine("Use las flechas ARRIBA/ABAJO para navegar y ENTER para seleccionar y la tecla de RETROCESO para volver al menú anterior.\n");
+                Console.WriteLine($"Use las flechas ARRIBA/ABAJO para navegar y ENTER para seleccionar{(isMainMenu ? "." : " y la tecla de RETROCESO o ESC para volver al menú anterior o cancelar.")}\n");
 
                 for (int i = 0; i < options.Length; i++)
                 {
@@ -44,6 +44,7 @@
                     case ConsoleKey.Enter:
                         return selectedIndex;
                     case ConsoleKey.Backspace:
+                    case ConsoleKey.Escape:
                         return -1;
                 }
             }
