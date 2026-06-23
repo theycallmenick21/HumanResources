@@ -2,7 +2,7 @@
 {
     public class CountryUpdateDto
     {
-        public int Id{ get; set; }
+        public int Id { get; set; }
 
         public required string Name { get; set; }
     }

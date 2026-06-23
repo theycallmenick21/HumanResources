@@ -1,5 +1,4 @@
 ﻿using HumanResources.Domain.Enums;
-using HumanResources.Shared.DTOs.City;
 using HumanResources.Shared.DTOs.Location;
 using HumanResources.SocketClient.Forms.Base;
 using HumanResources.SocketClient.Helpers;

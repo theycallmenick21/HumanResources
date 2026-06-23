@@ -73,7 +73,7 @@ namespace HumanResources.Application.Services
                     RoleId = employeeResponse.Data.RoleId,
                     DepartmentId = employeeResponse.Data.DepartmentId,
                     StartDate = DateTime.Today,
-                    EndDate = DateTime.Today 
+                    EndDate = DateTime.Today
                 };
 
                 await _recordRepository.InsertAsync(terminationRecord);
