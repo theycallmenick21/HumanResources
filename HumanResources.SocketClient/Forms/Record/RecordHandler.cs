@@ -13,7 +13,7 @@ namespace HumanResources.SocketClient.Forms.Record
 
         private static string GetRecord(int? idPredefinido)
         {
-            int id = idPredefinido ?? askId(EntitiesEnum.City);
+            int id = idPredefinido ?? AskId(EntitiesEnum.City);
 
             Console.Write("Ingrese el Nombre de la Ciudad: ");
             string nombre = Console.ReadLine()!;

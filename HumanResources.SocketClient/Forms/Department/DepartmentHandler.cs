@@ -13,7 +13,7 @@ namespace HumanResources.SocketClient.Forms.Department
 
         private static string GetDepartment(int? idPredefinido)
         {
-            int id = idPredefinido ?? askId(EntitiesEnum.Department);
+            int id = idPredefinido ?? AskId(EntitiesEnum.Department);
 
             Console.Write("Ingrese el Nombre del Departamento: ");
             string nombre = Console.ReadLine()!;

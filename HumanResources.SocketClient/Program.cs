@@ -112,7 +112,7 @@ namespace HumanResources.SocketClient
                 }
                 else
                 {
-                    int accionReal = selection switch
+                    int realAction = selection switch
                     {
                         0 => 0,
                         1 => 2,
@@ -120,12 +120,12 @@ namespace HumanResources.SocketClient
                         _ => 2
                     };
 
-                    ProcessTransaction(entidad, accionReal);
+                    ProcessTransaction(entidad, realAction);
                 }
             }
         }
 
-        static void ProcessTransaction(EntitiesEnum entity, int action, int? predefinedId = null)
+        static void ProcessTransaction(EntitiesEnum entity, int action, int? predefinedId = null, JsonElement? dbData = null)
         {
             Console.Clear();
             Console.CursorVisible = true;
@@ -145,7 +145,7 @@ namespace HumanResources.SocketClient
             string payloadJson = "";
 
             if (action != 2)
-                payloadJson = FormHandler.ProccessForm(entity, action, predefinedId);
+                payloadJson = FormHandler.ProccessForm(entity, action, predefinedId, dbData);
 
             string finalPackagedData = $"{user}|{(int)entity}|{action}|{payloadJson}";
             Console.WriteLine("\n[Enviando petición al servidor...]");
@@ -166,7 +166,7 @@ namespace HumanResources.SocketClient
 
                     if (response.Errors != null && response.Errors.Count > 0)
                     {
-                        foreach (var error in response.Errors)
+                        foreach (string error in response.Errors)
                         {
                             Console.WriteLine($" - {error}");
                         }
@@ -176,17 +176,24 @@ namespace HumanResources.SocketClient
                     return;
                 }
 
-                if (action == 2)
+                switch (action)
                 {
-                    ShowInteractiveList(entity, response.Data.ToString());
-                }
-                else
-                {
-                    Console.ForegroundColor = ConsoleColor.Green;
-                    Console.WriteLine($"\n[ÉXITO]: {response.Message}");
-                    Console.ResetColor();
-                    Console.WriteLine("\nPresione cualquier tecla para continuar...");
-                    Console.ReadKey(true);
+                    case 2:
+                        ShowInteractiveList(entity, response.Data.ToString());
+                        break;
+                    case 3:
+                        ShowInteractiveList(entity, response.Data.ToString(), true);
+                        break;
+                    case 0:
+                    case 1:
+                    case 5:
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        Console.WriteLine($"\n[ÉXITO]: {response.Message}");
+                        Console.ResetColor();
+                        Console.WriteLine("\nPresione cualquier tecla para continuar...");
+                        Console.ReadKey(true);
+                        break;
+
                 }
             }
             catch (Exception ex)
@@ -198,11 +205,15 @@ namespace HumanResources.SocketClient
             Console.CursorVisible = false;
         }
 
-        static void ShowInteractiveList(EntitiesEnum entity, string jsonResponse)
+        static void ShowInteractiveList(EntitiesEnum entity, string jsonResponse, bool onlyOne = false)
         {
             try
             {
-                List<JsonElement>? records = JsonSerializer.Deserialize<List<JsonElement>>(jsonResponse);
+                Console.CursorVisible = false;
+
+                List<JsonElement>? records = onlyOne
+                    ? [JsonSerializer.Deserialize<JsonElement>(jsonResponse)]
+                    : JsonSerializer.Deserialize<List<JsonElement>>(jsonResponse);
 
                 if (records == null || records.Count == 0)
                 {
@@ -218,7 +229,7 @@ namespace HumanResources.SocketClient
 
                     for (int i = 0; i < records.Count; i++)
                     {
-                        listOptions[i] = JsonExtractor.ExtractDisplayString(entity, records[i]);
+                        listOptions[i] = JsonExtractorHelper.ExtractDisplayString(entity, records[i]);
                     }
 
                     int selectedOption = MenuManager.ShowMenu($"REGISTROS DE {entity.ToString().ToUpper()}", listOptions);
@@ -229,8 +240,8 @@ namespace HumanResources.SocketClient
                     }
                     else
                     {
-                        int selectedId = JsonExtractor.ExtractRealId(entity, records[selectedOption]);
-                        ShowItemActionsMenu(entity, selectedId, listOptions[selectedOption]);
+                        int selectedId = JsonExtractorHelper.ExtractRealId(entity, records[selectedOption]);
+                        ShowItemActionsMenu(entity, selectedId, listOptions[selectedOption], records[selectedOption]);
                         exit = true;
                     }
                 }
@@ -242,7 +253,7 @@ namespace HumanResources.SocketClient
             }
         }
 
-        static void ShowItemActionsMenu(EntitiesEnum entity, int recordId, string displayString)
+        static void ShowItemActionsMenu(EntitiesEnum entity, int recordId, string displayString, JsonElement? dbData = null)
         {
             string[] options = [
                 "[~] Actualizar este registro",
@@ -254,7 +265,7 @@ namespace HumanResources.SocketClient
 
             int selection = MenuManager.ShowMenu($"ACCIÓN PARA: {displayString}", options);
 
-            ProcessTransaction(entity, selection == 0 ? 1 : 5, recordId);
+            ProcessTransaction(entity, selection == 0 ? 1 : 5, recordId, dbData);
         }
     }
 }

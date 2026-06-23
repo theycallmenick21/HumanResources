@@ -20,7 +20,7 @@ namespace HumanResources.Infrastructure.Repositories
         {
             try
             {
-                var data = await _dbSet.ToListAsync();
+                List<T> data = await _dbSet.ToListAsync();
                 return Response<IEnumerable<T>>.Success(data, "Registros obtenidos correctamente.");
             }
             catch (Exception ex)
@@ -34,12 +34,12 @@ namespace HumanResources.Infrastructure.Repositories
         {
             try
             {
-                var entidad = await _dbSet.FindAsync(id);
+                T? entity = await _dbSet.FindAsync(id);
 
-                if (entidad == null)
+                if (entity == null)
                     return Response<T>.Fail($"No se encontró ningún registro con el ID {id}.");
 
-                return Response<T>.Success(entidad, "Registro encontrado exitosamente.");
+                return Response<T>.Success(entity, "Registro encontrado exitosamente.");
             }
             catch (Exception ex)
             {
@@ -48,11 +48,11 @@ namespace HumanResources.Infrastructure.Repositories
             }
         }
 
-        public async Task<Response<bool>> InsertAsync(T entidad)
+        public async Task<Response<bool>> InsertAsync(T entity)
         {
             try
             {
-                await _dbSet.AddAsync(entidad);
+                await _dbSet.AddAsync(entity);
                 await _context.SaveChangesAsync();
                 return Response<bool>.Success(true, "Registro creado exitosamente.");
             }
@@ -63,11 +63,11 @@ namespace HumanResources.Infrastructure.Repositories
             }
         }
 
-        public async Task<Response<bool>> UpdateAsync(T entidad)
+        public async Task<Response<bool>> UpdateAsync(T entity)
         {
             try
             {
-                _dbSet.Update(entidad);
+                _dbSet.Update(entity);
                 await _context.SaveChangesAsync();
                 return Response<bool>.Success(true, "Registro actualizado correctamente.");
             }

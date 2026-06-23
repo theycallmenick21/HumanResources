@@ -3,7 +3,7 @@ using System.Text.Json;
 
 namespace HumanResources.SocketClient.Helpers
 {
-    public static class JsonExtractor
+    public static class JsonExtractorHelper
     {
         public static int ExtractRealId(EntitiesEnum entity, JsonElement item)
         {

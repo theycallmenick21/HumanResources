@@ -13,7 +13,7 @@ namespace HumanResources.SocketClient.Forms.Employee
 
         private static string GetEmployee(int? idPredefinido)
         {
-            int id = idPredefinido ?? askId(EntitiesEnum.City);
+            int id = idPredefinido ?? AskId(EntitiesEnum.City);
 
             Console.Write("Ingrese el Nombre de la Ciudad: ");
             string nombre = Console.ReadLine()!;
